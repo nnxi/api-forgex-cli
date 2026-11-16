@@ -1,4 +1,8 @@
-import inquirer from "inquirer";
+import fs from 'fs-extra';
+import path from 'path';
+import inquirer from 'inquirer';
+
+const PROJECT_NAME_REGEX = /^[a-z0-9][a-z0-9_-]*$/;
 
 const getOptions = async () => {
   const answers = await inquirer.prompt([
@@ -6,7 +10,18 @@ const getOptions = async () => {
       type: 'input',
       name: 'projectName',
       message: 'Project name:',
-      default: 'my-project'
+      default: 'my-project',
+      filter: (input) => input.trim(),
+      validate: (input) => {
+        const trimmed = input.trim();
+        if (!PROJECT_NAME_REGEX.test(trimmed)) {
+          return 'Project name must start with a lowercase letter or number and contain only lowercase letters, numbers, "-", or "_".';
+        }
+        if (fs.existsSync(path.resolve(process.cwd(), trimmed))) {
+          return `Directory "${trimmed}" already exists in the current path.`;
+        }
+        return true;
+      }
     },
     {
       type: 'confirm',

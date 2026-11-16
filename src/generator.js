@@ -11,26 +11,23 @@ const renderDirectory = async (tempDir, targetDir, answers) => {
 
             await fs.ensureDir(dest);
 
-            const items = await fs.readdir(src);
+            const items = await fs.readdir(src, { withFileTypes: true });
 
             for (const item of items) {
-                const srcPath = path.join(src, item);
-                const stats = await fs.stat(srcPath);
+                const srcPath = path.join(src, item.name);
 
-                if (stats.isDirectory()) {
+                if (item.isDirectory()) {
                     queue.push({
                         src: srcPath,
-                        dest: path.join(dest, item)
+                        dest: path.join(dest, item.name)
                     });
+                } else if (item.name.endsWith('.ejs')) {
+                    const targetItemName = item.name.slice(0, -4);
+                    const content = await fs.readFile(srcPath, 'utf8');
+                    const rendered = ejs.render(content, answers);
+                    await fs.writeFile(path.join(dest, targetItemName), rendered, 'utf8');
                 } else {
-                    let targetItemName = item.endsWith('.ejs') ? item.replace('.ejs', '') : item;
-                    let content = await fs.readFile(srcPath, 'utf8');
-
-                    if (item.endsWith('.ejs') || content.includes('<%')) {
-                        content = ejs.render(content, answers);
-                    }
-
-                    await fs.writeFile(path.join(dest, targetItemName), content);
+                    await fs.copyFile(srcPath, path.join(dest, item.name));
                 }
             }
         }
@@ -39,52 +36,35 @@ const renderDirectory = async (tempDir, targetDir, answers) => {
     }
 };
 
-const rendering = async (tempPath, answers) => {
-    try {
-        const templateRootPath = path.join(tempPath, 'template');
-        
-        const targetPath = path.join(process.cwd(), answers.projectName);
-        await fs.ensureDir(targetPath);
-
-        const baseDir = path.join(templateRootPath, 'base');
-        if (fs.existsSync(baseDir)) {
-            await renderDirectory(baseDir, targetPath, answers);
-        } else {
-            throw new Error(`Base directory not found at: ${baseDir}. Check repository structure.`);
-        }
-
-        if (answers.useDB) {
-            const dbDir = path.join(templateRootPath, 'addons', 'db');
-            if (fs.existsSync(dbDir)) {
-                await renderDirectory(dbDir, targetPath, answers);
-            }
-        }
-
-        if (answers.useJWT) {
-            const jwtDir = path.join(templateRootPath, 'addons', 'jwt');
-            if (fs.existsSync(jwtDir)) {
-                await renderDirectory(jwtDir, targetPath, answers);
-            }
-            
-            if (!answers.useUsersDomain) {
-                const jwtStandaloneDir = path.join(templateRootPath, 'addons', 'jwt_standalone');
-                if (fs.existsSync(jwtStandaloneDir)) {
-                    await renderDirectory(jwtStandaloneDir, targetPath, answers);
-                }
-            }
-        }
-
-        if (answers.useUsersDomain) {
-            const usrDir = path.join(templateRootPath, 'addons', 'usr');
-            if (fs.existsSync(usrDir)) {
-                await renderDirectory(usrDir, targetPath, answers);
-            }
-        }
-
-        return targetPath;
-    } catch (err) {
-        throw err;
+const rendering = async (tempPath, targetPath, answers) => {
+    if (await fs.pathExists(targetPath)) {
+        throw new Error(`Target directory already exists: "${targetPath}".`);
     }
+
+    const templateRootPath = path.join(tempPath, 'template');
+    await fs.ensureDir(targetPath);
+
+    const baseDir = path.join(templateRootPath, 'base');
+    if (!(await fs.pathExists(baseDir))) {
+        throw new Error(`Base directory not found at: ${baseDir}. Check repository structure.`);
+    }
+    await renderDirectory(baseDir, targetPath, answers);
+
+    const addonDirs = [
+        answers.useDB && 'db',
+        answers.useJWT && 'jwt',
+        answers.useJWT && !answers.useUsersDomain && 'jwt_standalone',
+        answers.useUsersDomain && 'usr'
+    ].filter(Boolean);
+
+    for (const addon of addonDirs) {
+        const addonPath = path.join(templateRootPath, 'addons', addon);
+        if (await fs.pathExists(addonPath)) {
+            await renderDirectory(addonPath, targetPath, answers);
+        }
+    }
+
+    return targetPath;
 };
 
 export default rendering;

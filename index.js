@@ -36,6 +36,23 @@ Options:
 }
 
 async function run() {
+    let targetPath;
+    let targetCreated = false;
+    let exitCode = 0;
+
+    const cleanupOnSignal = () => {
+        if (tempPath && fs.pathExistsSync(tempPath)) {
+            fs.removeSync(tempPath);
+        }
+        if (targetCreated && targetPath && fs.pathExistsSync(targetPath)) {
+            fs.removeSync(targetPath);
+        }
+        console.log('\nSetup cancelled.');
+        process.exit(130);
+    };
+
+    process.once('SIGINT', cleanupOnSignal);
+
     try {
         const answers = await prompt();
 
@@ -43,7 +60,12 @@ async function run() {
 
         tempPath = await gitClone(TEMPLATE_REPO);
 
-        const targetPath = await rendering(tempPath, answers);
+        targetPath = path.resolve(process.cwd(), answers.projectName);
+        if (!(await fs.pathExists(targetPath))) {
+            targetCreated = true;
+        }
+
+        await rendering(tempPath, targetPath, answers);
 
         console.log('\nProject generation completed successfully!');
 
@@ -58,10 +80,22 @@ async function run() {
         console.log('  npm start\n');
 
     } catch (err) {
-        console.error(`\nError: ${err.message}`);
+        if (err.name === 'ExitPromptError') {
+            console.log('\nSetup cancelled.');
+        } else {
+            if (targetCreated && targetPath && (await fs.pathExists(targetPath))) {
+                await fs.remove(targetPath).catch(() => {});
+            }
+            console.error(`\nError: ${err.message}`);
+            exitCode = 1;
+        }
     } finally {
-        if (tempPath && await fs.pathExists(tempPath)) {
-            await fs.remove(tempPath);
+        process.removeListener('SIGINT', cleanupOnSignal);
+        if (tempPath && (await fs.pathExists(tempPath))) {
+            await fs.remove(tempPath).catch(() => {});
+        }
+        if (exitCode !== 0) {
+            process.exit(exitCode);
         }
     }
 }
