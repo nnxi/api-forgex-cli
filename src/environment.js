@@ -37,7 +37,7 @@ const preProcess = (answers) => {
         missingTools.push('Git');
     }
 
-    if (answers.useDB) {
+    if (answers.dbType !== 'none') {
         try {
             execFileSync('docker', ['--version'], { stdio: 'ignore' });
             execFileSync('docker', ['compose', 'version'], { stdio: 'ignore' });

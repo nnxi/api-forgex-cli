@@ -24,10 +24,15 @@ const getOptions = async () => {
       }
     },
     {
-      type: 'confirm',
-      name: 'useDB',
-      message: 'Include MySQL database (Docker Compose)?',
-      default: false
+      type: 'list',
+      name: 'dbType',
+      message: 'Select a database (Docker Compose):',
+      choices: [
+        { name: 'None', value: 'none' },
+        { name: 'MySQL', value: 'mysql' },
+        { name: 'PostgreSQL', value: 'postgres' }
+      ],
+      default: 'none'
     },
     {
       type: 'confirm',
@@ -39,7 +44,7 @@ const getOptions = async () => {
       type: 'confirm',
       name: 'useUsersDomain',
       message: 'Include User(Register/Login) API boilerplate?',
-      when: (answers) => answers.useDB && answers.useJWT,
+      when: (answers) => answers.dbType !== 'none' && answers.useJWT,
       default: false
     },
     {
@@ -60,7 +65,8 @@ const getOptions = async () => {
   return {
     useUsersDomain: false,
     useMonitoring: false,
-    ...answers
+    ...answers,
+    useDB: answers.dbType !== 'none'
   };
 };
 

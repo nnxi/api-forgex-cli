@@ -51,7 +51,7 @@ const rendering = async (tempPath, targetPath, answers) => {
     await renderDirectory(baseDir, targetPath, answers);
 
     const addonDirs = [
-        answers.useDB && 'db',
+        answers.dbType !== 'none' && 'db',
         answers.useJWT && 'jwt',
         answers.useJWT && !answers.useUsersDomain && 'jwt_standalone',
         answers.useUsersDomain && 'usr'
