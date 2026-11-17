@@ -24,7 +24,7 @@ const getOptions = async () => {
       }
     },
     {
-      type: 'list',
+      type: 'select',
       name: 'dbType',
       message: 'Select a database (Docker Compose):',
       choices: [
