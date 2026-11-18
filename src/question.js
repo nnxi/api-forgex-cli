@@ -85,21 +85,13 @@ const getOptions = async () => {
       message: 'Include nodejs-api-docgen API documentation setup?',
       when: (answers) => answers.framework === 'express',
       default: false
-    }/*,
-    {
-      type: 'confirm',
-      name: 'useMonitoring',
-      message: 'Include nodejs-api-stats real-time monitoring?',
-      when: (answers) => answers.useApiDocGen,
-      default: false
-    }*/
+    }
   ]);
 
   return {
     dbPassword: 'root_password',
     useUsersDomain: false,
     useApiDocGen: false,
-    useMonitoring: false,
     ...answers,
     useDB: answers.dbType !== 'none'
   };
