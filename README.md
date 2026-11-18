@@ -3,12 +3,13 @@
 [![NPM Version](https://img.shields.io/npm/v/api-forgex-cli.svg)](https://www.npmjs.com/package/api-forgex-cli)
 [![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-black.svg?logo=github)](https://github.com/nnxi/api-forgex-cli)
 
-확장 가능하고 모듈화된 Express.js 백엔드 서버를 빠르게 구축하기 위한 스캐폴딩 CLI 도구입니다.  
-대화형 프롬프트를 통해 **데이터베이스(MySQL / PostgreSQL)**, **JWT 인증**, **회원(Users) API**, **자동 API 문서화** 구성을 선택하면 필요한 코드와 환경을 즉시 생성합니다.
+확장 가능하고 모듈화된 Node.js(Express / Fastify) 백엔드 서버를 빠르게 구축하기 위한 스캐폴딩 CLI 도구입니다.  
+대화형 프롬프트를 통해 **프레임워크(Express / Fastify)**, **데이터베이스(MySQL / PostgreSQL)**, **JWT 인증**, **회원(Users) API**, **자동 API 문서화(Express 전용)** 구성을 선택하면 필요한 코드와 환경을 즉시 생성합니다.
 
 ## 주요 기능
 
 * **대화형 설정 (Interactive Setup):** 직관적인 CLI 프롬프트로 프로젝트 구성을 손쉽게 선택할 수 있습니다.
+* **멀티 프레임워크 지원:** **Express** 또는 **Fastify** 중 원하는 백엔드 프레임워크를 선택해 스캐폴딩할 수 있습니다.
 * **멀티 데이터베이스 지원:** **MySQL 8.0**(`mysql2`) 또는 **PostgreSQL 16**(`pg`) 중 원하는 DB를 선택하거나, DB 없이 생성할 수 있습니다.
 * **모듈형 아키텍처:** 필요한 애드온(Database, JWT 인증, Users 도메인)만 선택하여 깔끔한 코드베이스를 유지합니다.
 * **Docker Compose 자동 구성:** DB 선택 시 선택한 엔진에 맞춘 `docker-compose.yml`과 초기 스키마(`init.sql`)를 자동으로 생성합니다.

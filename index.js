@@ -26,7 +26,7 @@ if (args.includes('-h') || args.includes('--help')) {
     console.log(`
 Usage: npx api-forgex-cli [options]
 
-A CLI tool for generating Node.js  API boilerplates using Express.
+A CLI tool for generating Node.js API boilerplates using Express or Fastify.
 
 Options:
   -v, --version    Output the current version

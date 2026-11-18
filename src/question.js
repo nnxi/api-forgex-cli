@@ -25,6 +25,16 @@ const getOptions = async () => {
     },
     {
       type: 'select',
+      name: 'framework',
+      message: 'Select a backend framework:',
+      choices: [
+        { name: 'Express', value: 'express' },
+        { name: 'Fastify', value: 'fastify' }
+      ],
+      default: 'express'
+    },
+    {
+      type: 'select',
       name: 'dbType',
       message: 'Select a database (Docker Compose):',
       choices: [
@@ -33,6 +43,28 @@ const getOptions = async () => {
         { name: 'PostgreSQL', value: 'postgres' }
       ],
       default: 'none'
+    },
+    {
+      type: 'password',
+      name: 'dbPassword',
+      mask: '*',
+      message: 'Database password \x1b[2m(leave blank for default)\x1b[0m:',
+      when: (answers) => {
+        if (answers.dbType === 'none') return false;
+        const dbName = `${answers.projectName.replace(/-/g, '_')}_db`;
+        const dbUser = answers.dbType === 'postgres' ? 'postgres' : 'root';
+        const dbPort = answers.dbType === 'postgres' ? 5432 : 3306;
+        console.log(`  \x1b[2m↳ DB Name: ${dbName} | User: ${dbUser} | Port: ${dbPort}\x1b[0m`);
+        return true;
+      },
+      filter: (input) => input.trim() || 'root_password',
+      validate: (input) => {
+        const trimmed = input.trim();
+        if (/[\s'"$`\\]/.test(trimmed)) {
+          return 'Password cannot contain spaces, quotes, backslashes, or "$" characters.';
+        }
+        return true;
+      }
     },
     {
       type: 'confirm',
@@ -51,6 +83,7 @@ const getOptions = async () => {
       type: 'confirm',
       name: 'useApiDocGen',
       message: 'Include nodejs-api-docgen API documentation setup?',
+      when: (answers) => answers.framework === 'express',
       default: false
     }/*,
     {
@@ -63,7 +96,9 @@ const getOptions = async () => {
   ]);
 
   return {
+    dbPassword: 'root_password',
     useUsersDomain: false,
+    useApiDocGen: false,
     useMonitoring: false,
     ...answers,
     useDB: answers.dbType !== 'none'
